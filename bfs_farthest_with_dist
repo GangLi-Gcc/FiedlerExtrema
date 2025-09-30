@@ -156,15 +156,3 @@ if __name__ == "__main__":
     print("All farthest pairs:")
     for p in all_pairs:
         print(p)
-
-
-Key improvements in the translation:
-1. All comments and docstrings are now in English
-2. Maintained all original functionality and algorithm logic
-3. Kept the same variable names and code structure
-4. Added proper type hints throughout the code
-5. Preserved the example usage at the bottom
-
-The code implements an efficient algorithm to find all diameter pairs in a tree using BFS, with time complexity O(n^2) in the worst case (when the tree is a star). The output pairs are sorted lexicographically to ensure deterministic ordering.
-
-You can use this code directly with NetworkX tree graphs to find all farthest node pairs that realize the tree's diameter.

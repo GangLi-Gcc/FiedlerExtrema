@@ -1,0 +1,181 @@
+import networkx as nx
+import matplotlib.pyplot as plt
+from scipy.sparse.linalg import eigsh
+import numpy as np
+from collections import defaultdict
+
+
+def get_subtree(G, root, exclude_nodes=None):
+    """
+    Get an independent subtree rooted at 'root' (strictly excluding nodes from another tree)
+    Args:
+        G: Original graph
+        root: Root node of the subtree
+        exclude_nodes: Set of nodes to be excluded
+    Returns:
+        nx.Graph: Completely independent subtree
+    """
+    if exclude_nodes is None:
+        exclude_nodes = set()
+    
+    subtree = nx.Graph()
+    visited = set([root])
+    queue = [root]
+    
+    while queue:
+        node = queue.pop(0)
+        for neighbor in G.neighbors(node):
+            if neighbor not in visited and neighbor not in exclude_nodes:
+                visited.add(neighbor)
+                subtree.add_edge(node, neighbor)
+                queue.append(neighbor)
+    return subtree
+
+def compute_tree_layout(tree, root, direction):
+    """
+    Calculate tree coordinates (with strict directional control)
+    direction: 
+      'up'   - Grows upward (y as positive integers)
+      'down' - Grows downward (y as negative integers)
+    """
+    # Calculate node depths
+    depths = {root: 0}
+    queue = [(root, 0)]
+    while queue:
+        node, depth = queue.pop(0)
+        for neighbor in tree.neighbors(node):
+            if neighbor not in depths:
+                depths[neighbor] = depth + 1
+                queue.append((neighbor, depth + 1))
+    
+    # Calculate coordinates
+    pos = {}
+    for node, depth in depths.items():
+        # Horizontal coordinate (centered within same level)
+        siblings = [n for n in depths if depths[n] == depth]
+        x = (siblings.index(node) - (len(siblings)-1)/2) * 2
+        
+        # Vertical coordinate (key modification: strict integers with directional separation)
+        if direction == 'up':
+            y = depth + 1  # Ensures starting from 1 as positive integer
+        else:
+            y = -(depth + 1)  # Ensures starting from -1 as negative integer
+            
+        pos[node] = (x, y)
+    return pos
+
+def dual_bfs_layout(G, u, v):
+    """Generate dual BFS layout (final directional corrected version)"""
+    # Get two independent subtrees
+    subtree_u = get_subtree(G, root=u, exclude_nodes={v})
+    subtree_v = get_subtree(G, root=v, exclude_nodes={u})
+    
+    # Calculate layouts (opposite directions)
+    pos_u = compute_tree_layout(subtree_u, u, 'up')    # u-tree grows upward (y positive)
+    pos_v = compute_tree_layout(subtree_v, v, 'down')  # v-tree grows downward (y negative)
+    
+    # Merge layouts (align at node v)
+    if v in pos_u:
+        # Get v's coordinates in u-tree
+        x_v_u, y_v_u = pos_u[v]
+        
+        # Calculate required offset for v-tree (to make v in v-tree coincide with v in u-tree)
+        x_v_v, y_v_v = pos_v.get(v, (0, 0))
+        delta_x = x_v_u - x_v_v
+        delta_y = y_v_u - y_v_v
+        
+        # Adjust all v-tree node coordinates
+        adjusted_pos_v = {
+            node: (x + delta_x, y + delta_y)
+            for node, (x, y) in pos_v.items()
+        }
+        
+        # Merge (priority given to u-tree coordinates)
+        pos = {**adjusted_pos_v, **pos_u}
+    else:
+        pos = pos_u
+    
+    return pos
+
+def compute_fiedler_vector(G):
+    """Compute Fiedler vector (strictly following node order)"""
+    nodes = sorted(G.nodes())
+    try:
+        L = nx.laplacian_matrix(G, nodelist=nodes).astype(float)
+        eigenvalues, eigenvectors = eigsh(L, k=2, which='SM')
+        if len(eigenvalues) >= 2:
+            return eigenvectors[:, 1], nodes
+    except:
+        return np.zeros(len(nodes)), nodes
+
+def visualize_dual_bfs(G, u, v):
+    """Visualize dual BFS layout"""
+    # Compute Fiedler vector
+    fiedler_vector, nodes = compute_fiedler_vector(G)
+    node_index = {n: i for i, n in enumerate(nodes)}
+    labels = {
+        n: f"{n}\n{fiedler_vector[node_index[n]]:.3f}"
+        for n in nodes
+    }
+    
+    # Calculate layout
+    pos1 = dual_bfs_layout(G, u, v)
+    pos2 = dual_bfs_layout(G, v, u)
+    pos2 = {k: [x, -y+1] for k, (x, y) in pos2.items()}
+    pos = {**pos1, **pos2}
+    # Print coordinates for verification
+    print("=== Node Coordinates ===")
+    for node in sorted(pos.keys()):
+        print(f"Node {node}: {pos[node]}")
+    
+    # Visualization settings
+    plt.figure(figsize=(10, 6))  # 20 inches = 20 × 2.54 ≈ 50.8 cm
+    
+    # Draw edges
+    edge_colors = [
+        '#FF69B4' if edge in {(u,v), (v,u)} else 'black' 
+        for edge in G.edges()
+    ]
+    nx.draw_networkx_edges(
+        G, pos,
+        edge_color=edge_colors,
+        width=[3 if c=='#FF69B4' else 2 for c in edge_colors],
+        arrows=False
+    )
+    
+    # Draw nodes
+    node_colors = [
+        '#1E90FF' if n == u else
+        '#FF0000' if n == v else
+        '#FFD700' if G.degree(n) >= 2 else '#00FF00' 
+        for n in G.nodes()
+    ]
+    nx.draw_networkx_nodes(
+        G, pos,
+        node_size=[800 if n in {u,v} else 600 for n in G.nodes()],
+        node_color=node_colors,
+        edgecolors='black',
+        linewidths=0,
+        alpha=0.99
+    )
+    # Draw labels (offset right by 0.7 with background box)
+    # 1. Draw vertex number labels (default position)
+    node_labels = {n: str(n) for n in G.nodes()}  # Vertex number labels
+    nx.draw_networkx_labels(
+        G, pos, labels=node_labels,
+        font_size=16, font_color='black', font_family='Times New Roman'
+    )
+    
+    # 2. Draw Fiedler vector component annotations (offset right by 0.7)
+    fiedler_labels = {n: f"{fiedler_vector[node_index[n]]:.3f}" for n in G.nodes()}
+    label_pos = {node: (x + 0.3, y) for node, (x, y) in pos.items()}  # Offset right by 0.7
+    nx.draw_networkx_labels(
+        G, label_pos, labels=fiedler_labels,
+        font_size=16, font_color='blue', font_family='Times New Roman',
+        bbox=dict(facecolor='white', alpha=0.0, edgecolor='none', pad=0.2)
+    )
+    plt.axis('off')
+    #plt.title("Dual BFS Layout", fontsize=26, pad=20)
+    plt.tight_layout()
+    plt.savefig("large_graph.pdf", format="pdf", dpi=300)
+    plt.show()

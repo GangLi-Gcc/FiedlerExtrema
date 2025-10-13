@@ -281,6 +281,88 @@ if __name__ == "__main__":
     print("Diameter:", diameter)
 """
 ########################################
+import numpy as np
+import networkx as nx
+from scipy.sparse import lil_matrix
+from scipy.sparse.linalg import eigsh
+from collections import deque
+
+def _build_L_and_vectors(G: nx.Graph):
+    """
+    Given a NetworkX tree G, construct the Laplacian matrix L and return (L, nodes_order)
+    where nodes_order is an ordered list (sorted by node labels) used to map matrix rows/columns to graph nodes
+    """
+    nodes = list(G.nodes())
+    # Use sorting to ensure consistent mapping
+    nodes_order = sorted(nodes)
+    idx = {node: i for i, node in enumerate(nodes_order)}
+    n = len(nodes_order)
+
+    A = lil_matrix((n, n), dtype=float)
+    deg = np.zeros(n, dtype=float)
+
+    for u, v in G.edges():
+        i, j = idx[u], idx[v]
+        A[i, j] = 1
+        A[j, i] = 1
+        deg[i] += 1
+        deg[j] += 1
+
+    D = lil_matrix((n, n), dtype=float)
+    for i in range(n):
+        D[i, i] = deg[i]
+
+    L = D - A
+    return L.tocsr(), nodes_order
+
+def second_smallest_fiedler(G: nx.Graph):
+    """
+    Compute the Fiedler vector F of tree G (the eigenvector corresponding to λ2, centered to be orthogonal to 1)
+    and λ2.
+    Return (lam2, F).
+    """
+    L, nodes_order = _build_L_and_vectors(G)
+
+    # Solve for the two smallest eigenvalues and eigenvectors
+    # Symmetric positive semidefinite matrix, use SM (smallest magnitude)
+    vals, vecs = eigsh(L, k=2, which='SM')
+    idx = np.argsort(vals)
+    lam2 = float(vals[idx[1]])
+    F = vecs[:, idx[1]]
+    # Center so it is orthogonal to the all-ones vector (common simplification)
+    F = F - F.mean()
+    return lam2, F, nodes_order
+
+def fiedler_extremes_vertex(G: nx.Graph):
+    """
+    Input: tree G
+    Output: a tuple (max_vertex, min_vertex)
+      - max_vertex: the vertex label corresponding to the maximum component of the Fiedler vector F (one of them if multiple)
+      - min_vertex: the vertex label corresponding to the minimum component of F (one of them if multiple)
+    """
+    lam2, F, nodes_order = second_smallest_fiedler(G)
+
+    # Find indices of max/min components
+    max_idx = int(np.argmax(F))
+    min_idx = int(np.argmin(F))
+
+    max_vertex = nodes_order[max_idx]
+    min_vertex = nodes_order[min_idx]
+
+    return max_vertex, min_vertex
+"""
+# Example usage (can be tested directly)
+if __name__ == "__main__":
+    # Construct a simple tree for testing
+    G = nx.Graph()
+    edges = [(0,1),(1,2),(1,3),(3,4),(4,5)]
+    G.add_edges_from(edges)
+
+    max_v, min_v = fiedler_extremes_vertex(G)
+    print("Max Fiedler vertex:", max_v)
+    print("Min Fiedler vertex:", min_v)
+"""
+########################################
 # Example usage (can be tested directly)
 if __name__ == "__main__":
     count=0

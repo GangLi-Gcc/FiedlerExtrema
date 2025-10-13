@@ -180,7 +180,7 @@ def visualize_dual_bfs(G, u, v):
     plt.tight_layout()
     plt.savefig("large_graph.pdf", format="pdf", dpi=300)
     plt.show()
-##################
+############################################################################
 def visualize_counterexample(G):
     A = nx.to_numpy_array(G)  # Generate the adjacency matrix for graph G.
     # Get the Laplacian matrix and convert it to float64 type
@@ -211,7 +211,7 @@ def visualize_counterexample(G):
     # nx.draw(G, pos, with_labels=True, labels=labels, node_size=300, node_color='lightblue', font_size=8, font_weight='bold')
     # plt.show()
     visualize_dual_bfs(G, u, v)
-##########################################
+################################################################################
 import networkx as nx
 from collections import deque
 from typing import Tuple, List, Set
@@ -281,7 +281,7 @@ if __name__ == "__main__":
     print("Farthest nodes:", sorted(list(farthest_nodes)))
     print("Diameter:", diameter)
 """
-########################################
+##################################################################################
 import numpy as np
 import networkx as nx
 from scipy.sparse import lil_matrix
@@ -363,7 +363,7 @@ if __name__ == "__main__":
     print("Max Fiedler vertex:", max_v)
     print("Min Fiedler vertex:", min_v)
 """
-########################################
+######################################################################
 # Example usage (can be tested directly)
 if __name__ == "__main__":
     count=0

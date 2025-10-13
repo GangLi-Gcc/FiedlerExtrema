@@ -284,11 +284,11 @@ if __name__ == "__main__":
 # Example usage (can be tested directly)
 if __name__ == "__main__":
     count=0
-for i in range(200):   
-    G = nx.random_labeled_tree(20)
-    farthest_nodes, diameter = tree_diameter_endpoints(G)
-    max_vertex, min_vertex = fiedler_extremes_vertex(G)
-    if (max_vertex not in farthest_nodes) or (min_vertex not in farthest_nodes):
-       count=count+1
-       visualize_counterexample(G)
-print('The number of trees where extrema are not at diameter endpoints:',count)
+    for i in range(200):   
+        G = nx.random_labeled_tree(20)
+        farthest_nodes, diameter = tree_diameter_endpoints(G)
+        max_vertex, min_vertex = fiedler_extremes_vertex(G)
+        if (max_vertex not in farthest_nodes) or (min_vertex not in farthest_nodes):
+           count=count+1
+           visualize_counterexample(G)
+    print('The number of trees where extrema are not at diameter endpoints:',count)

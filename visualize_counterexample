@@ -366,8 +366,10 @@ if __name__ == "__main__":
 # Example usage (can be tested directly)
 if __name__ == "__main__":
     count=0
-    for i in range(200):   
-        G = nx.random_labeled_tree(20)
+    m=200
+    n=20
+    for i in range(m):   
+        G = nx.random_labeled_tree(n)
         farthest_nodes, diameter = tree_diameter_endpoints(G)
         max_vertex, min_vertex = fiedler_extremes_vertex(G)
         if (max_vertex not in farthest_nodes) or (min_vertex not in farthest_nodes):

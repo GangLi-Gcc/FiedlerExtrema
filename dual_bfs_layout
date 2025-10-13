@@ -7,13 +7,13 @@ from collections import defaultdict
 
 def get_subtree(G, root, exclude_nodes=None):
     """
-    Get an independent subtree rooted at 'root' (strictly excluding nodes from another tree)
+    Get the independent subtree rooted at root (strictly excluding nodes from another tree)
     Args:
-        G: Original graph
-        root: Root node of the subtree
-        exclude_nodes: Set of nodes to be excluded
+        G: original graph
+        root: subtree root node
+        exclude_nodes: set of nodes to be excluded
     Returns:
-        nx.Graph: Completely independent subtree
+        nx.Graph: a completely independent subtree
     """
     if exclude_nodes is None:
         exclude_nodes = set()
@@ -33,12 +33,12 @@ def get_subtree(G, root, exclude_nodes=None):
 
 def compute_tree_layout(tree, root, direction):
     """
-    Calculate tree coordinates (with strict directional control)
+    Compute coordinates for the tree (strict direction control)
     direction: 
-      'up'   - Grows upward (y as positive integers)
-      'down' - Grows downward (y as negative integers)
+      'up'   - grow upward (y as positive integers)
+      'down' - grow downward (y as negative integers)
     """
-    # Calculate node depths
+    # Compute node depths
     depths = {root: 0}
     queue = [(root, 0)]
     while queue:
@@ -48,49 +48,49 @@ def compute_tree_layout(tree, root, direction):
                 depths[neighbor] = depth + 1
                 queue.append((neighbor, depth + 1))
     
-    # Calculate coordinates
+    # Compute coordinates
     pos = {}
     for node, depth in depths.items():
-        # Horizontal coordinate (centered within same level)
+        # horizontal coordinate (centered within the layer)
         siblings = [n for n in depths if depths[n] == depth]
         x = (siblings.index(node) - (len(siblings)-1)/2) * 2
         
-        # Vertical coordinate (key modification: strict integers with directional separation)
+        # vertical coordinate (core modification: strictly integers and directional separation)
         if direction == 'up':
-            y = depth + 1  # Ensures starting from 1 as positive integer
+            y = depth + 1  # ensure positive integers starting from 1
         else:
-            y = -(depth + 1)  # Ensures starting from -1 as negative integer
+            y = -(depth + 1)  # ensure negative integers starting from -1
             
         pos[node] = (x, y)
     return pos
 
 def dual_bfs_layout(G, u, v):
-    """Generate dual BFS layout (final directional corrected version)"""
+    """Generate dual-BFS layout (final direction corrected)"""
     # Get two independent subtrees
     subtree_u = get_subtree(G, root=u, exclude_nodes={v})
     subtree_v = get_subtree(G, root=v, exclude_nodes={u})
     
-    # Calculate layouts (opposite directions)
-    pos_u = compute_tree_layout(subtree_u, u, 'up')    # u-tree grows upward (y positive)
-    pos_v = compute_tree_layout(subtree_v, v, 'down')  # v-tree grows downward (y negative)
+    # Compute layouts (opposite directions)
+    pos_u = compute_tree_layout(subtree_u, u, 'up')    # u-tree up (y positive)
+    pos_v = compute_tree_layout(subtree_v, v, 'down')   # v-tree down (y negative)
     
-    # Merge layouts (align at node v)
+    # Merge layouts (align at the v node)
     if v in pos_u:
-        # Get v's coordinates in u-tree
+        # Get v's coordinates in the u-tree
         x_v_u, y_v_u = pos_u[v]
         
-        # Calculate required offset for v-tree (to make v in v-tree coincide with v in u-tree)
+        # Compute offset for v-tree to align v at the same position
         x_v_v, y_v_v = pos_v.get(v, (0, 0))
         delta_x = x_v_u - x_v_v
         delta_y = y_v_u - y_v_v
         
-        # Adjust all v-tree node coordinates
+        # Adjust coordinates of v-tree
         adjusted_pos_v = {
             node: (x + delta_x, y + delta_y)
             for node, (x, y) in pos_v.items()
         }
         
-        # Merge (priority given to u-tree coordinates)
+        # Merge (prefer coordinates from u-tree for overlap)
         pos = {**adjusted_pos_v, **pos_u}
     else:
         pos = pos_u
@@ -98,7 +98,7 @@ def dual_bfs_layout(G, u, v):
     return pos
 
 def compute_fiedler_vector(G):
-    """Compute Fiedler vector (strictly following node order)"""
+    """Compute the Fiedler vector (strictly by node order)"""
     nodes = sorted(G.nodes())
     try:
         L = nx.laplacian_matrix(G, nodelist=nodes).astype(float)
@@ -109,7 +109,7 @@ def compute_fiedler_vector(G):
         return np.zeros(len(nodes)), nodes
 
 def visualize_dual_bfs(G, u, v):
-    """Visualize dual BFS layout"""
+    """Visualize dual-BFS layout"""
     # Compute Fiedler vector
     fiedler_vector, nodes = compute_fiedler_vector(G)
     node_index = {n: i for i, n in enumerate(nodes)}
@@ -118,18 +118,18 @@ def visualize_dual_bfs(G, u, v):
         for n in nodes
     }
     
-    # Calculate layout
+    # Compute layouts
     pos1 = dual_bfs_layout(G, u, v)
     pos2 = dual_bfs_layout(G, v, u)
-    pos2 = {k: [x, -y+1] for k, (x, y) in pos2.items()}
+    pos2 = {k: [x, -y+1] for k, (x, y) in  pos2.items()}
     pos = {**pos1, **pos2}
-    # Print coordinates for verification
-    print("=== Node Coordinates ===")
-    for node in sorted(pos.keys()):
-        print(f"Node {node}: {pos[node]}")
+    # Print coordinates for verification (commented out)
+#    print("=== Node coordinates ===")
+#    for node in sorted(pos.keys()):
+#        print(f"Node {node}: {pos[node]}")
     
     # Visualization settings
-    plt.figure(figsize=(10, 6))  # 20 inches = 20 × 2.54 ≈ 50.8 cm
+    plt.figure(figsize=(10, 6))#20 inches ≈ 50.8 cm
     
     # Draw edges
     edge_colors = [
@@ -158,17 +158,17 @@ def visualize_dual_bfs(G, u, v):
         linewidths=0,
         alpha=0.99
     )
-    # Draw labels (offset right by 0.7 with background box)
-    # 1. Draw vertex number labels (default position)
-    node_labels = {n: str(n) for n in G.nodes()}  # Vertex number labels
+    # Draw labels (offset to the right and add background box)
+    # 1. Vertex numbers (default position)
+    node_labels = {n: str(n) for n in G.nodes()}  # vertex labels
     nx.draw_networkx_labels(
         G, pos, labels=node_labels,
         font_size=16, font_color='black', font_family='Times New Roman'
     )
     
-    # 2. Draw Fiedler vector component annotations (offset right by 0.7)
+    # 2. Fiedler vector components (offset to the right)
     fiedler_labels = {n: f"{fiedler_vector[node_index[n]]:.3f}" for n in G.nodes()}
-    label_pos = {node: (x + 0.3, y) for node, (x, y) in pos.items()}  # Offset right by 0.7
+    label_pos = {node: (x + 0.3, y) for node, (x, y) in pos.items()}  # offset to the right
     nx.draw_networkx_labels(
         G, label_pos, labels=fiedler_labels,
         font_size=16, font_color='blue', font_family='Times New Roman',

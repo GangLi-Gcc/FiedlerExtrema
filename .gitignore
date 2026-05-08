@@ -205,3 +205,17 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# Paper artefacts (do NOT commit the LaTeX paper or compiled PDFs other than figures)
+*.tex
+*.aux
+*.bbl
+*.blg
+*.out
+*.spl
+*.synctex.gz
+*.toc
+*.fls
+*.fdb_latexmk
+# But keep figure PDFs
+!figures/*.pdf

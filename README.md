@@ -33,22 +33,31 @@ Formally, under the Working Assumption that λ₂ is simple, let:
 ```
 FiedlerExtrema/
 ├── src/
-│   ├── verify_olep.py          # Main OLEP verification script (Tables 1 & 2)
+│   ├── verify_olep.py          # OLEP verification (Tables 1 & 2)
+│   ├── locate_extrema.py       # Path-B algorithm: locate c, v+, v- without
+│   │                           # computing the Fiedler vector (Section 8)
 │   ├── plot_counterexamples.py # Figure 2: minimal counterexamples (n=13)
 │   └── visualize_bfs_tree.py   # Figure 1: Fiedler-BFS-tree layout
 │
 ├── results/
-│   └── final_defB/
-│       ├── table1_summary.txt          # Human-readable Table 1 summary
-│       ├── table1_by_n.json            # Per-n statistics (n=5..17)
-│       ├── table2_random.json          # Table 2: six random tree models
-│       ├── counterex_exhaustive.json   # All 830 counterexamples (full data)
-│       └── counterex_metadata.json     # Summary metadata
+│   ├── final_defB/                       # OLEP enumeration data
+│   │   ├── table1_summary.txt
+│   │   ├── table1_by_n.json
+│   │   ├── table2_random.json
+│   │   ├── counterex_exhaustive.json
+│   │   └── counterex_metadata.json
+│   └── locate_extrema_full/              # Section 8 algorithm evaluation
+│       ├── summary.txt                   # n=5..17 accuracy table
+│       └── report.json                   # per-tree outcomes (80,910 trees)
 │
-└── figures/
-    ├── fiedler_bfs_tree.pdf            # Figure 1: Fiedler-BFS-tree (n=15)
-    ├── olep_counterexamples.pdf        # Figure 2: counterexamples CE1, CE2
-    └── olep_counterexamples.png        # PNG preview
+├── figures/
+│   ├── fiedler_bfs_tree.pdf            # Figure 1: Fiedler-BFS-tree (n=15)
+│   ├── olep_counterexamples.pdf        # Figure 2: counterexamples CE1, CE2
+│   └── olep_counterexamples.png        # PNG preview
+│
+├── ALGORITHM.md                # Algorithm description: theory + complexity
+├── README.md                   # This file
+└── LICENSE                     # MIT
 ```
 
 ---
@@ -141,6 +150,20 @@ python src/verify_olep.py
 Output is saved to `results/final_defB/`. Running time: ~10 minutes
 (dominated by n = 17 exhaustive enumeration of 48,629 trees).
 Random-model seed is fixed at 42 for reproducibility.
+
+### Run the Path-B algorithm (Section 8)
+
+```bash
+python src/locate_extrema.py
+```
+
+Locates the spectral center `c` and the Fiedler extremum vertices
+`{v+, v-}` *without* computing the Fiedler vector of the input tree.
+The script also runs the full evaluation against ground truth on
+counterexamples, random Prüfer / BA / caterpillar / D ≤ 4 corpora, and
+saves a report to `results/locate_extrema/report.json`.
+See [ALGORITHM.md](ALGORITHM.md) for theory, complexity, and per-`n`
+accuracy on the 80,910-tree corpus.
 
 ### Regenerate Figure 1 (Fiedler-BFS-tree, n = 15)
 

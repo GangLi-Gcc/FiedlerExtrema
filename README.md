@@ -4,7 +4,7 @@ Code and data accompanying the paper:
 
 > **"The Outer-Leaf Extremal Property of the Fiedler Vector on Trees"**
 > Gang Li (Guangzhou College of Commerce)
-> Submitted to *, 2026.
+> Submitted to *Discrete Applied Mathematics*, 2026.
 
 ---
 
@@ -112,20 +112,18 @@ threshold (Corollary 6.3) characterise all observed failures.
 
 ---
 
-## Main Theoretical Results (paper v32)
+## Main Theoretical Results
 
 | Condition | Statement | Status |
 |-----------|-----------|--------|
-| **Theorem 5.7 (main)** | All trees with diameter D ≤ 4 satisfy OLEP. | Proved (D = 4 sharp) |
-| **Proposition 5.5** | All caterpillar trees satisfy OLEP, regardless of diameter. | Proved |
-| Theorem 5.1 (C1) | Sign-reversing automorphism + equal-depth leaves ⇒ OLEP. | Proved |
+| **Theorem (main)** | All trees with diameter D ≤ 4 satisfy OLEP. Bound is sharp (8 counterexamples at D=5). | Proved |
+| **Proposition** | All caterpillar trees satisfy OLEP, regardless of diameter. | Proved |
+| Theorem (C1) | Sign-reversing automorphism + equal-depth leaves ⇒ OLEP. | Proved |
 | Remark (C2) | All `V₊`-leaves at depth `K₊` and all `V₋`-leaves at depth `K₋` ⇒ OLEP. | Trivial |
-| Conjecture 5.4 (C3) | Layer entropy `H_k ≤ 1` for all k ⇒ OLEP. | Open |
-| Proposition 7.1 | OLEP strictly strengthens GP19 Lemma 8(a); independent of LS24. | Proved |
 
 The paper extends the leaf-extremal results of Gernandt–Padé (2019, LAA 570)
 and is complementary to the augmented-path / hitting-time framework of
-Lederman–Steinerberger (2024, LAA 703); see Proposition 7.1 in the paper.
+Lederman–Steinerberger (2024, LAA 703).
 
 ---
 
@@ -216,11 +214,11 @@ the OLEP violation.
 
 If you use this code or data, please cite:
 
-```
+```bibtex
 @article{Li2026OLEP,
   author  = {Gang Li},
-  title   = {The Outer-Leaf Extremal Property of the Fiedler Vector on Trees},
-  journal = {},
+  title   = {The Outer-Leaf Extremal Property of the {Fiedler} Vector on Trees},
+  journal = {Discrete Applied Mathematics},
   year    = {2026},
   note    = {Submitted}
 }
